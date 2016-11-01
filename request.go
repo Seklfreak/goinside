@@ -3,6 +3,7 @@ package goinside
 import (
 	"encoding/base64"
 	"fmt"
+	"h12.me/socks"
 	"io"
 	"net/http"
 	"net/url"
@@ -80,6 +81,7 @@ var (
 		"User-Agent": "Linux Android",
 		"Referer":    "http://m.dcinside.com",
 	}
+	Socks4 = ""
 )
 
 type connector interface {
@@ -113,6 +115,12 @@ func do(c connector, method, URL string, cookies []*http.Cookie, form io.Reader,
 		proxy := c.Connection().proxy
 		if proxy != nil {
 			return &http.Client{Transport: &http.Transport{Proxy: proxy}}
+		}
+		if Socks4 != "" {
+			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS4A, Socks4)
+			if dialSocksProxy != nil {
+				return &http.Client{Transport: &http.Transport{Dial: dialSocksProxy}}
+			}
 		}
 		return &http.Client{}
 	}()
